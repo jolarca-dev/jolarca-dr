@@ -1,0 +1,66 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets (NEVER commit)
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+.env
+.env.*
+.env.local
+.env.production
+secrets/
+credentials/
+.secrets/
+
+# Secret scanning output
+*.sarif
+gitleaks-report*
+trivy-report*
+
+# Agent/tool local state
+.claude/
+.qoder/
+
+# Evidence (sensitive, access-controlled)
+# incident-response/evidence/
+
+# PyCharm "New Project" scaffold - never commit (drift-findings.md D-28).
+# jolarca-security tracks main.py by mistake; do not repeat it here.
+/main.py

@@ -48,6 +48,18 @@ Thumbs.db
 secrets/
 credentials/
 .secrets/
+secrets.json
+credentials.json
+
+# Terraform state — policy/repo-defaults.yml#data_handling forbids state in git.
+# State holds resource attributes and can contain plaintext secrets.
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# DR runbook variables: real bucket/project/service-account literals live here,
+# untracked, so the published documents can stay parameterised.
+dr-vars.env
 
 # Secret scanning output
 *.sarif

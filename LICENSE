@@ -1,0 +1,30 @@
+Copyright (c) 2026 JOL Infrastructure / jolarca-dev. All rights reserved.
+
+PROPRIETARY AND CONFIDENTIAL — NO LICENCE GRANTED
+
+This repository contains the disaster recovery policies, runbooks, rehearsal
+procedures and continuity documentation of the jolarca-dev marketplace. It is
+published in source-available form for the operational convenience of authorised
+personnel and for compliance evidence purposes only.
+
+No licence, whether express or implied, is granted to any person to use, copy,
+modify, merge, publish, distribute, sublicense, sell or create derivative works
+from this repository or any part of it, except where such activity is performed
+by an authorised contributor of the jolarca-dev organisation through the change
+control process documented in CONTRIBUTING.md.
+
+This notice is deliberately NOT an open source licence. It is not the GNU
+Affero General Public License, and no copyleft obligation is created or intended.
+Where a different licence applies to another repository in this organisation,
+that repository carries its own LICENSE file and this one does not extend to it.
+
+Because this repository is publicly readable, nothing in it should be treated as
+secret. It intentionally contains no credentials, keys, tokens or personal data.
+Infrastructure identifiers that do appear are documented in SECURITY.md and are
+handled under the organisation's data classification policy.
+
+Unauthorised copying, distribution or use is prohibited and may be pursued under
+applicable law.
+
+For permission requests, and to report a security vulnerability, follow
+SECURITY.md. Do not open a public issue for a security report.

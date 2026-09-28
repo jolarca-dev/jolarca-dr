@@ -1,0 +1,80 @@
+# Required status checks for jolarca-dr.
+#
+# This workflow exists because jolarca-control repos/jolarca-dr.yml declares
+# `lint` as a required status check and nothing in the repository emitted it. A
+# required context that no job produces can never report, so the branch
+# protection rule that depends on it is unsatisfiable — the D-22/D-27 failure
+# class: a control present in configuration that never fires.
+#
+# Job names are load-bearing. `lint` is the declared required context; `gitleaks`
+# is mandated fleet-wide by policy/repo-defaults.yml#required_checks.pre_merge.
+# Renaming a job silently detaches it from branch protection.
+#
+# Actions are pinned to full commit SHAs, matching the convention in
+# jolarca-control/.github/workflows/. A tag is mutable and can be repointed; a
+# SHA cannot. `sha_pinning_required` is false on this repository, so nothing
+# enforces this — the pinning is a reviewer obligation until that setting is on.
+#
+# gitleaks is run as a pinned binary with its release checksum verified, rather
+# than through gitleaks/gitleaks-action, which requires a GITLEAKS_LICENSE secret
+# for organisation repositories. Fewer third-party dependencies in a PCI-DSS
+# scope pipeline is the point.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Verified against gitleaks_8.30.1_checksums.txt from the official release.
+  # Bumping the version means re-verifying this value; do not copy it forward.
+  GITLEAKS_VERSION: "8.30.1"
+  GITLEAKS_SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v4.3.0
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+
+      # Standard library only: no registry fetch, no transitive dependency tree.
+      - name: Lint documents (scripts/lint_docs.py)
+        run: python3 scripts/lint_docs.py
+
+  gitleaks:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      # Full history: a secret introduced in an earlier commit and still present
+      # must be found, not just one added by this change.
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v4.3.0
+        with:
+          fetch-depth: 0
+
+      - name: Install gitleaks (pinned, checksum-verified)
+        run: |
+          set -euo pipefail
+          url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSLo gitleaks.tar.gz "$url"
+          printf '%s  gitleaks.tar.gz\n' "$GITLEAKS_SHA256" | sha256sum -c -
+          tar -xzf gitleaks.tar.gz gitleaks
+          ./gitleaks version
+
+      - name: Scan for secrets
+        run: ./gitleaks detect --source . --redact --no-banner --exit-code 1

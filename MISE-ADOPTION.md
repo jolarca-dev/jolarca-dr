@@ -27,3 +27,48 @@ No automatic hooks, environment-file loading, production credentials, deployment
 ## Installer provenance
 
 The smoke workflow pins mise-action to its reviewed commit and mise to 2026.10.25, verifies the extracted Linux x64 binary SHA-256, disables shared caching, and uses a read-only token on a hosted runner. The archive digest was checked against the release API before deriving the binary digest. This is integrity verification, not an independent publisher identity audit.
+
+## Repository-level bounds added 2026-11-03 (ADR-0010 M-01 and M-02)
+
+Two files the original proposal did not carry:
+
+- `.miserc.toml` bounds mise's config discovery to this repository by setting
+  `ceiling_paths` to the **parent** of the repo root. mise reads `.miserc.toml`
+  before any `mise.toml`, so the same setting under `[settings]` in `mise.toml` has
+  no effect on discovery at all. A ceiling directory is not searched itself, which
+  is why the value names the parent: naming this directory would stop mise loading
+  the very config the bound exists to protect.
+- `mise.toml` gains `[tool_config] locked = true`, making strict lockfile mode a
+  property of this repository rather than of one CI invocation.
+  `install_args: --locked` in the workflow binds the job; a developer running plain
+  `mise install` was never bound by it. `[tool_config]` is not merged and covers
+  only tools declared in this config root, so it does nothing about tools inherited
+  from a parent directory -- which is why it has to ship with `.miserc.toml`, not
+  instead of it.
+
+`mise-config-scope` in the workflow is a four-leg refusal test, each negative paired
+with a positive, because a guard that only asserts absence also passes when the
+command printed nothing:
+
+1. with no ceiling, `mise config` must list a decoy planted one directory above the
+   checkout and adopt its tool -- proving the next leg is testing something;
+2. with the committed `.miserc.toml`, the decoy must be absent **and** every version
+   this repository declares must still be the one mise actually selects;
+3. plain `mise install`, no `--locked` anywhere, must succeed from the committed
+   lockfile;
+4. the same plain install must be refused when `mise.lock` is absent.
+
+The job reads the declared tool set out of `mise.toml` instead of naming versions,
+so one file is correct in every repository that adopts the pattern.
+
+### Limits, stated rather than implied
+
+Linux x64 only, in CI, on a hosted runner with `permissions: contents: read`, no
+secrets and no deployment path. It is not a required status check. A project
+`.miserc.toml` **cannot** ignore global or system config, so `~/.config/mise` and
+`/etc/mise` still merge into every project on the machine (ADR-0010 M-04 stays
+open). `ceiling_paths` **fails open**: an unrendered template becomes a literal path
+matching nothing, silently, because mise reads the file before logging starts -- leg 2
+is what turns the declaration into a control, and deleting that leg deletes the
+control. The printed verdicts on this pull request's checks are the evidence; a green
+badge is not, and nothing here certifies any version as vulnerability-free.

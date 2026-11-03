@@ -1,4 +1,11 @@
 # Initial local toolchain adoption; see MISE-ADOPTION.md for validation limits.
+# Strict lockfile mode for the tools declared in this config root (ADR-0010 M-02).
+# install_args: --locked in the workflow binds the job, not the repository; a plain
+# `mise install` was never bound by it. [tool_config] is not merged and reaches only
+# tools declared here, so .miserc.toml must ship with it, not after it.
+[tool_config]
+locked = true
+
 [tools]
 python = "3.12.16"
 
